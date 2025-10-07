@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, MessageCircle } from "lucide-react";
+import { postAPI } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Post {
   id: number;
@@ -15,30 +17,86 @@ interface Post {
   image?: string;
 }
 
-interface PostCardProps {
-  post: Post;
+interface Comment {
+  comment_id: number;
+  text: string;
+  created_at: string;
+  creator: {
+    username: string;
+    profile_picture?: string;
+  };
 }
 
-const PostCard = ({ post }: PostCardProps) => {
+interface PostCardProps {
+  post: Post;
+  onUpdate?: () => void;
+}
+
+const PostCard = ({ post, onUpdate }: PostCardProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [postComments, setPostComments] = useState<string[]>([]);
+  const [postComments, setPostComments] = useState<Comment[]>([]);
+  const [commentsCount, setCommentsCount] = useState(post.comments);
 
-  const handleLike = () => {
-    setLiked(!liked);
+  const loadComments = async () => {
+    try {
+      const data = await postAPI.getComments(post.id);
+      setPostComments(data.comments);
+      setCommentsCount(data.comments.length);
+    } catch (error) {
+      console.error("Failed to load comments");
+    }
   };
 
-  const handleComment = () => {
+  useEffect(() => {
+    if (showComments) {
+      loadComments();
+    }
+  }, [showComments]);
+
+  const handleLike = async () => {
+    try {
+      const response = await postAPI.like(post.id);
+      setLiked(!liked);
+      setLikesCount(response.likes_count);
+    } catch (error) {
+      toast({
+        title: "Failed to like post",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleComment = async () => {
     if (commentText.trim()) {
-      setPostComments([...postComments, commentText]);
-      setCommentText("");
+      try {
+        await postAPI.addComment(post.id, commentText);
+        setCommentText("");
+        await loadComments();
+        toast({
+          title: "Comment added!",
+        });
+      } catch (error) {
+        toast({
+          title: "Failed to add comment",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleUserClick = () => {
     navigate(`/user/${encodeURIComponent(post.author)}`);
+  };
+
+  const toggleComments = () => {
+    setShowComments(!showComments);
   };
 
   return (
@@ -79,30 +137,33 @@ const PostCard = ({ post }: PostCardProps) => {
           }`}
         >
           <ThumbsUp className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-          <span>{post.likes + (liked ? 1 : 0)}</span>
+          <span>{likesCount}</span>
         </button>
 
         <button
-          onClick={() => setShowComments(!showComments)}
+          onClick={toggleComments}
           className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
         >
           <MessageCircle className="w-5 h-5" />
-          <span>{post.comments + postComments.length}</span>
+          <span>{commentsCount}</span>
         </button>
       </div>
 
       {showComments && (
         <div className="mt-4 space-y-4">
-          {postComments.map((comment, index) => (
-            <div key={index} className="flex gap-3">
+          {postComments.map((comment) => (
+            <div key={comment.comment_id} className="flex gap-3">
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"
-                alt="You"
+                src={comment.creator.profile_picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.creator.username}`}
+                alt={comment.creator.username}
                 className="avatar-sm"
               />
               <div className="flex-1 bg-muted rounded-lg p-3">
-                <p className="font-semibold text-sm">You</p>
-                <p className="text-sm">{comment}</p>
+                <p className="font-semibold text-sm">{comment.creator.username}</p>
+                <p className="text-sm">{comment.text}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(comment.created_at).toLocaleDateString()}
+                </p>
               </div>
             </div>
           ))}

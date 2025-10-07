@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import PostCard from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Image, Video, Smile } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { feedAPI, postAPI } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Post {
   id: number;
@@ -19,52 +22,92 @@ interface Post {
 
 const Home = () => {
   const [newPostContent, setNewPostContent] = useState("");
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      author: "Sarah Johnson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      content: "Just finished an amazing hike in the mountains! The view was absolutely breathtaking. Can't wait to go back next weekend! 🏔️",
-      timestamp: "2 hours ago",
-      likes: 24,
-      comments: 5,
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    },
-    {
-      id: 2,
-      author: "Mike Chen",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-      content: "Celebrating my team's success on our latest project! Hard work really does pay off. Grateful for this amazing group of people. 🎉",
-      timestamp: "5 hours ago",
-      likes: 42,
-      comments: 8,
-      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
-    },
-    {
-      id: 3,
-      author: "Emily Rodriguez",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily",
-      content: "Coffee and coding - the perfect combination for a productive morning! What's your go-to productivity booster? ☕💻",
-      timestamp: "1 day ago",
-      likes: 18,
-      comments: 12,
-      image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80",
-    },
-  ]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleCreatePost = () => {
+  useEffect(() => {
+    loadFeed();
+  }, []);
+
+  const loadFeed = async () => {
+    setLoading(true);
+    try {
+      const data = await feedAPI.getFeed(20, 0);
+      // Transform API data to match our Post interface
+      const transformedPosts = data.feed.map((item: any) => ({
+        id: item.post_id,
+        author: item.author,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.author}`,
+        content: item.content,
+        timestamp: new Date(item.created_at).toLocaleDateString(),
+        likes: item.likes,
+        comments: item.comments,
+        image: item.media_url && item.media_url !== '/media/3' ? item.media_url : undefined,
+      }));
+      setPosts(transformedPosts);
+    } catch (error: any) {
+      // If API fails, use mock data
+      setPosts([
+        {
+          id: 1,
+          author: "Sarah Johnson",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+          content: "Just finished an amazing hike in the mountains! The view was absolutely breathtaking. Can't wait to go back next weekend! 🏔️",
+          timestamp: "2 hours ago",
+          likes: 24,
+          comments: 5,
+          image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+        },
+        {
+          id: 2,
+          author: "Mike Chen",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
+          content: "Celebrating my team's success on our latest project! Hard work really does pay off. Grateful for this amazing group of people. 🎉",
+          timestamp: "5 hours ago",
+          likes: 42,
+          comments: 8,
+          image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreatePost = async () => {
     if (newPostContent.trim()) {
-      const newPost: Post = {
-        id: posts.length + 1,
-        author: "You",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
-        content: newPostContent,
-        timestamp: "Just now",
-        likes: 0,
-        comments: 0,
-      };
-      setPosts([newPost, ...posts]);
-      setNewPostContent("");
+      try {
+        const response = await postAPI.create({
+          text: newPostContent,
+          category: "General",
+        });
+        
+        // Add new post to the top of the feed
+        const newPost: Post = {
+          id: response.data.id,
+          author: user?.username || "You",
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || "You"}`,
+          content: newPostContent,
+          timestamp: "Just now",
+          likes: 0,
+          comments: 0,
+        };
+        setPosts([newPost, ...posts]);
+        setNewPostContent("");
+        
+        toast({
+          title: "Post created!",
+          description: "Your post has been shared successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Failed to create post",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -85,7 +128,7 @@ const Home = () => {
             <div className="post-card p-4 mb-4">
               <div className="flex gap-3">
                 <img
-                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || "You"}`}
                   alt="Your profile"
                   className="avatar-md"
                 />
@@ -118,11 +161,17 @@ const Home = () => {
             </div>
 
             {/* Posts Feed */}
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading feed...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} onUpdate={loadFeed} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

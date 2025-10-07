@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { LogIn } from "lucide-react";
 
 const Login = () => {
@@ -12,21 +13,31 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Simulate login success
-    toast({
-      title: "Welcome back!",
-      description: "You've successfully logged in",
-    });
-    
-    setTimeout(() => {
+    try {
+      await login(formData.email, formData.password);
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully logged in",
+      });
       navigate("/home");
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.response?.data?.detail || "Invalid email or password",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +83,8 @@ const Login = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full btn-hero">
-              Log In
+            <Button type="submit" className="w-full btn-hero" disabled={loading}>
+              {loading ? "Logging in..." : "Log In"}
             </Button>
           </form>
 

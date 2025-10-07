@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserPlus } from "lucide-react";
 
 const Signup = () => {
@@ -14,10 +15,12 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -32,21 +35,29 @@ const Signup = () => {
     if (formData.password.length < 6) {
       toast({
         title: "Error",
-        description: "Password must be at least 6 characters",
+        description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
       return;
     }
 
-    // Simulate signup success
-    toast({
-      title: "Success!",
-      description: "Your account has been created",
-    });
-    
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      await signup(formData.email, formData.username, formData.password);
+      toast({
+        title: "Account created!",
+        description: "Welcome to SocialHub",
+      });
       navigate("/home");
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "Signup failed",
+        description: error.response?.data?.detail || "Failed to create account",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -118,8 +129,8 @@ const Signup = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full btn-hero">
-              Sign Up
+            <Button type="submit" className="w-full btn-hero" disabled={loading}>
+              {loading ? "Creating Account..." : "Sign Up"}
             </Button>
           </form>
 
