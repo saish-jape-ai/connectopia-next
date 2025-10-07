@@ -1,16 +1,20 @@
-import { Users, Calendar, Bookmark, Settings } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Home, MessageCircle, User, LogOut } from "lucide-react";
 
 const Sidebar = () => {
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+
   const menuItems = [
-    { icon: Users, label: "Friends", count: 342 },
-    { icon: Calendar, label: "Events", count: 3 },
-    { icon: Bookmark, label: "Saved", count: 12 },
-    { icon: Settings, label: "Settings" },
+    { icon: Home, label: "Home", path: "/home" },
+    { icon: MessageCircle, label: "Messages", path: "/chat" },
+    { icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (
-    <div className="bg-card rounded-xl p-6 shadow-sm border border-border sticky top-20">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="bg-card rounded-xl p-4 shadow-sm border border-border sticky top-20 h-[calc(100vh-6rem)] flex flex-col">
+      <div className="flex items-center gap-3 mb-6 p-2">
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"
           alt="Profile"
@@ -22,22 +26,30 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-1 flex-1">
         {menuItems.map((item) => (
-          <button
+          <Link
             key={item.label}
-            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors text-left"
+            to={item.path}
+            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+              isActive(item.path)
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'hover:bg-muted text-foreground'
+            }`}
           >
-            <div className="flex items-center gap-3">
-              <item.icon className="w-5 h-5 text-primary" />
-              <span className="font-medium">{item.label}</span>
-            </div>
-            {item.count && (
-              <span className="text-sm text-muted-foreground">{item.count}</span>
-            )}
-          </button>
+            <item.icon className="w-5 h-5" />
+            <span>{item.label}</span>
+          </Link>
         ))}
       </nav>
+
+      <Link
+        to="/"
+        className="flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors mt-auto"
+      >
+        <LogOut className="w-5 h-5" />
+        <span className="font-medium">Logout</span>
+      </Link>
     </div>
   );
 };
