@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Search } from "lucide-react";
@@ -60,9 +61,11 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <Sidebar />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden" style={{ height: 'calc(100vh - 140px)' }}>
+      <div className="lg:ml-64 pt-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden" style={{ height: 'calc(100vh - 140px)' }}>
           <div className="grid grid-cols-1 md:grid-cols-12 h-full">
             {/* Friends List Sidebar */}
             <div className="md:col-span-4 border-r border-border flex flex-col">
@@ -155,6 +158,7 @@ const Chat = () => {
                   </Button>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
