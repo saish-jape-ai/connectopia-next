@@ -13,20 +13,8 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border h-full flex flex-col overflow-y-auto">
-      <div className="flex items-center gap-3 mb-6 p-2">
-        <img
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"
-          alt="Profile"
-          className="avatar-md"
-        />
-        <div>
-          <p className="font-semibold">John Doe</p>
-          <p className="text-sm text-muted-foreground">View profile</p>
-        </div>
-      </div>
-
-      <nav className="space-y-1 flex-1">
+    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-card border-r border-border shadow-sm flex flex-col overflow-y-auto z-40">
+      <nav className="space-y-1 flex-1 p-4">
         {menuItems.map((item) => (
           <Link
             key={item.label}
@@ -43,13 +31,15 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <Link
-        to="/"
-        className="flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors mt-auto"
-      >
-        <LogOut className="w-5 h-5" />
-        <span className="font-medium">Logout</span>
-      </Link>
+      <div className="p-4 border-t border-border">
+        <Link
+          to="/"
+          className="flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium">Logout</span>
+        </Link>
+      </div>
     </div>
   );
 };

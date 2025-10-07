@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +37,11 @@ const EditProfile = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
+      <div className="flex">
+        <Sidebar />
+        
+        <div className="flex-1 lg:ml-64">
+          <div className="container mx-auto px-4 py-6 max-w-2xl">
         <div className="bg-card rounded-xl shadow-sm border border-border p-6">
           <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
           
@@ -108,6 +113,8 @@ const EditProfile = () => {
                 Cancel
               </Button>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
