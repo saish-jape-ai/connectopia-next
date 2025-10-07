@@ -13,7 +13,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border sticky top-20 h-[calc(100vh-6rem)] flex flex-col">
+    <div className="bg-card rounded-xl p-4 shadow-sm border border-border h-full flex flex-col overflow-y-auto">
       <div className="flex items-center gap-3 mb-6 p-2">
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"

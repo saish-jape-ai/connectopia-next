@@ -2,9 +2,9 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import PostCard from "@/components/PostCard";
-import CreatePostModal from "@/components/CreatePostModal";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Image, Video, Smile } from "lucide-react";
 
 interface Post {
   id: number;
@@ -14,10 +14,11 @@ interface Post {
   timestamp: string;
   likes: number;
   comments: number;
+  image?: string;
 }
 
 const Home = () => {
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [newPostContent, setNewPostContent] = useState("");
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -27,6 +28,7 @@ const Home = () => {
       timestamp: "2 hours ago",
       likes: 24,
       comments: 5,
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     },
     {
       id: 2,
@@ -36,6 +38,7 @@ const Home = () => {
       timestamp: "5 hours ago",
       likes: 42,
       comments: 8,
+      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
     },
     {
       id: 3,
@@ -45,57 +48,84 @@ const Home = () => {
       timestamp: "1 day ago",
       likes: 18,
       comments: 12,
+      image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80",
     },
   ]);
 
-  const handleCreatePost = (content: string) => {
-    const newPost: Post = {
-      id: posts.length + 1,
-      author: "You",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
-      content,
-      timestamp: "Just now",
-      likes: 0,
-      comments: 0,
-    };
-    setPosts([newPost, ...posts]);
-    setIsCreatePostOpen(false);
+  const handleCreatePost = () => {
+    if (newPostContent.trim()) {
+      const newPost: Post = {
+        id: posts.length + 1,
+        author: "You",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
+        content: newPostContent,
+        timestamp: "Just now",
+        likes: 0,
+        comments: 0,
+      };
+      setPosts([newPost, ...posts]);
+      setNewPostContent("");
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Sidebar */}
-          <div className="hidden lg:block lg:col-span-3">
-            <Sidebar />
-          </div>
+      <div className="flex">
+        {/* Fixed Sidebar */}
+        <div className="hidden lg:block lg:w-64 fixed left-0 top-16 h-[calc(100vh-4rem)]">
+          <Sidebar />
+        </div>
 
-          {/* Main Feed */}
-          <div className="lg:col-span-9 space-y-4 max-w-2xl mx-auto">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+        {/* Main Content - with left margin to account for fixed sidebar */}
+        <div className="flex-1 lg:ml-64">
+          <div className="container mx-auto px-4 py-6 max-w-2xl">
+            {/* Create Post Section */}
+            <div className="post-card p-4 mb-4">
+              <div className="flex gap-3">
+                <img
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=You"
+                  alt="Your profile"
+                  className="avatar-md"
+                />
+                <Textarea
+                  placeholder="What's on your mind?"
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  className="flex-1 min-h-[60px] resize-none"
+                />
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Image className="w-5 h-5" />
+                    Photo
+                  </Button>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Video className="w-5 h-5" />
+                    Video
+                  </Button>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Smile className="w-5 h-5" />
+                    Feeling
+                  </Button>
+                </div>
+                <Button onClick={handleCreatePost} disabled={!newPostContent.trim()}>
+                  Post
+                </Button>
+              </div>
+            </div>
+
+            {/* Posts Feed */}
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Floating Create Post Button */}
-      <Button
-        onClick={() => setIsCreatePostOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all"
-        size="icon"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
-
-      <CreatePostModal
-        isOpen={isCreatePostOpen}
-        onClose={() => setIsCreatePostOpen(false)}
-        onPost={handleCreatePost}
-      />
     </div>
   );
 };

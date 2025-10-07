@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, MessageCircle } from "lucide-react";
@@ -11,6 +12,7 @@ interface Post {
   timestamp: string;
   likes: number;
   comments: number;
+  image?: string;
 }
 
 interface PostCardProps {
@@ -18,6 +20,7 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post }: PostCardProps) => {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -34,17 +37,39 @@ const PostCard = ({ post }: PostCardProps) => {
     }
   };
 
+  const handleUserClick = () => {
+    navigate(`/user/${encodeURIComponent(post.author)}`);
+  };
+
   return (
     <div className="post-card p-6">
       <div className="flex items-start gap-3 mb-4">
-        <img src={post.avatar} alt={post.author} className="avatar-md" />
+        <img 
+          src={post.avatar} 
+          alt={post.author} 
+          className="avatar-md cursor-pointer hover:opacity-80 transition-opacity" 
+          onClick={handleUserClick}
+        />
         <div className="flex-1">
-          <h3 className="font-semibold">{post.author}</h3>
+          <h3 
+            className="font-semibold cursor-pointer hover:text-primary transition-colors"
+            onClick={handleUserClick}
+          >
+            {post.author}
+          </h3>
           <p className="text-sm text-muted-foreground">{post.timestamp}</p>
         </div>
       </div>
 
       <p className="mb-4 text-foreground">{post.content}</p>
+
+      {post.image && (
+        <img 
+          src={post.image} 
+          alt="Post content" 
+          className="w-full rounded-lg mb-4 object-cover max-h-[500px]"
+        />
+      )}
 
       <div className="flex items-center gap-6 pb-4 border-b border-border">
         <button

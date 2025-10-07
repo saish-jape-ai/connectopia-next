@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import UserProfile from "./pages/UserProfile";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/user/:username" element={<UserProfile />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
